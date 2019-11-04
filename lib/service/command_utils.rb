@@ -35,7 +35,7 @@ module Service
     class << self
       def run_script(name, script, dir, op, args = [], context = {})
         if File.exists?(script)
-          with_unbundled_env do
+          with_clean_env do
             run_fork(context) do |wr|
               wr.close_on_exec = false
               setup_bash_funcs(ENV, wr.fileno)
@@ -137,12 +137,12 @@ EOF
         h['BASH_FUNC_tool_bg()'] = "() { setsid \"$@\" #{fileno}>&- </dev/null &>/dev/null &\n}"
       end
 
-      def with_unbundled_env(&block)
-        if Kernel.const_defined?(:OpenFlight) && OpenFlight.respond_to?(:with_unbundled_env)
-          OpenFlight.with_unbundled_env { block.call }
+      def with_clean_env(&block)
+        if Kernel.const_defined?(:OpenFlight) && OpenFlight.respond_to?(:with_standard_env)
+          OpenFlight.with_standard_env(&block)
         else
           msg = Bundler.respond_to?(:with_unbundled_env) ? :with_unbundled_env : :with_clean_env
-          Bundler.__send__(msg) { block.call }
+          Bundler.__send__(msg, &block)
         end
       end
     end
