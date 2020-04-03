@@ -78,7 +78,7 @@ module Service
               title cfg['title']
               text cfg['text']
               cfg['values'].each do |h|
-                value h['label'], h['key']
+                value h['label'], h['key'], h['length']
               end
             end
           end
