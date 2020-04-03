@@ -94,9 +94,14 @@ module Service
     end
 
     def dialog_width
-      label_length = self.class.values.map { |v| v[:label].length }.max
-      input_length = self.class.values.map { |v| v[:length] }.max
-      label_length + input_length + 2
+      values = self.class.values
+      label_length = values.map { |v| v[:label].length }.max
+      input_length = values.map { |v| v[:length] }.compact.max || default_input_length
+      [ label_length + input_length + 2, 50 ].max
+    end
+
+    def default_input_length
+      10
     end
 
     def items
@@ -111,7 +116,7 @@ module Service
           data.item = send(v[:prop])
           data.iy = i
           data.ix = label_length + 2
-          data.flen = v[:length] || data.item.length + 10
+          data.flen = v[:length] || data.item.length + default_input_length
           data.ilen = 0
         end.to_a
       end
