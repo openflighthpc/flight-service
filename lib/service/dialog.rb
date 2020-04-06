@@ -82,7 +82,7 @@ module Service
 
     def request
       @changed = false
-      dialog.form(self.class.text, items, 20, 50, 0).tap do |results|
+      dialog.form(self.class.text, items, 20, dialog_width, 0).tap do |results|
         results.each do |label,val|
           prop = key_for(label)
           unless send(prop.to_sym) == val
@@ -93,8 +93,21 @@ module Service
       end
     end
 
+    def dialog_width
+      values = self.class.values
+      label_length = values.map { |v| v[:label].length }.max
+      input_length = values.map { |v| v[:length] }.compact.max || default_input_length
+      [ label_length + input_length + 2, 50 ].max
+    end
+
+    def default_input_length
+      10
+    end
+
     def items
       i = 0
+      label_length = self.class.values.map { |v| v[:label].length }.max
+
       self.class.values.map do |v|
         FormData.new.tap do |data|
           data.label = v[:label]
@@ -102,8 +115,8 @@ module Service
           data.lx = 1
           data.item = send(v[:prop])
           data.iy = i
-          data.ix = 10
-          data.flen = data.item.length + 10
+          data.ix = label_length + 2
+          data.flen = v[:length] || data.item.length + default_input_length
           data.ilen = 0
         end.to_a
       end
@@ -144,8 +157,8 @@ module Service
         @dclass.text = v
       end
 
-      def value(label, prop)
-        @dclass.values << {label: label, prop: prop}
+      def value(label, prop, length)
+        @dclass.values << {label: label, prop: prop, length: length}
       end
     end
   end
