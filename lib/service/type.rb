@@ -27,6 +27,7 @@
 require_relative 'config'
 require_relative 'errors'
 require_relative 'command_utils'
+require_relative 'env_parser'
 
 require 'sys/proctable'
 require 'fileutils'
@@ -184,6 +185,20 @@ module Service
     end
 
     private
+    def env
+      {}.tap do |h|
+        default_env_file = File.join(Config.env_dir,'default')
+        h.merge!(
+          EnvParser.parse(File.read(default_env_file))
+        ) if File.exists?(default_env_file)
+
+        service_env_file = File.join(Config.env_dir, self.name)
+        h.merge!(
+          EnvParser.parse(File.read(service_env_file))
+        ) if File.exists?(service_env_file)
+      end
+    end
+
     def run_operation(op, context: {}, args: [])
       CommandUtils.run_script(
         self.name,
@@ -191,7 +206,8 @@ module Service
         Config.service_log_dir,
         op,
         args,
-        context
+        context,
+        env
       )
     end
   end
