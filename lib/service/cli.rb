@@ -38,7 +38,7 @@ module Service
     extend Commander::Delegates
     program :application, "Flight Service"
     program :name, PROGRAM_NAME
-    program :version, "Release 2019.1 (v#{Service::VERSION})"
+    program :version, "v#{Service::VERSION}"
     program :description, 'Manage HPC environment services.'
     program :help_paging, false
     default_command :help
