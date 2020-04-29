@@ -168,6 +168,10 @@ module Service
       self.class.enabled
     end
 
+    def pid
+      running? ? File.read(pidfile).chomp : 'n/a'
+    end
+
     def pidfile
       @pidfile ||=
         File.join(Config.service_state_dir, "#{self.name}.pid")

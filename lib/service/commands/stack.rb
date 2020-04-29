@@ -59,17 +59,18 @@ module Service
       def status
         if $stdout.tty?
           Table.emit do |t|
-            headers 'Service', 'Status'
+            headers 'Service', 'Status', 'PID'
             Type.enabled.each do |svc|
               t = Type[svc]
               row Paint[t.name, :cyan],
-                  t.running? ? 'active' : 'stopped'
+                  t.running? ? 'active' : 'stopped',
+                  t.pid
             end
           end
         else
           Type.enabled.each do |svc|
             t = Type[svc]
-            puts [t.name, t.running? ? 'active' : 'stopped'].join("\t")
+            puts [t.name, t.running? ? 'active' : 'stopped', t.pid].join("\t")
           end
         end
       end

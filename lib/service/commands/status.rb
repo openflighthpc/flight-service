@@ -33,12 +33,12 @@ module Service
       def run
         if $stdout.tty?
           if service.running?
-            puts "Service '#{Paint[service.name, :cyan]}' is active"
+            puts "Service '#{Paint[service.name, :cyan]}' is active (#{service.pid})"
           else
             puts "Service '#{Paint[service.name, :cyan]}' is stopped"
           end
         else
-          puts service.running? ? 'active' : 'stopped'
+          puts service.running? ? "active\t#{service.pid}" : 'stopped'
         end
       end
 
