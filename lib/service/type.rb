@@ -118,6 +118,11 @@ module Service
       end
     end
 
+    def reload
+      raise ServiceOperationError, 'Service is not reloadable' unless reloadable?
+      run_operation('reload', args: [pidfile])
+    end
+
     def restart
       ctx = {}
       run_operation('restart', args: [pidfile], context: ctx).tap do |s|
@@ -172,6 +177,10 @@ module Service
         pid = File.read(pidfile)
         !!Sys::ProcTable.ps(pid: pid.to_i)
       end
+    end
+
+    def reloadable?
+      File.exists?(File.join(@dir, "reload.sh"))
     end
 
     private
