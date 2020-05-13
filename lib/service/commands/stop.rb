@@ -31,27 +31,35 @@ module Service
   module Commands
     class Stop < Command
       def run
-        puts "Stopping '#{Paint[service.name, :cyan]}' service:\n\n"
-        status_text = Paint["Stopping service", '#2794d8']
-        print "   > "
-        begin
-          Whirly.start(
-            spinner: 'star',
-            remove_after_stop: true,
-            append_newline: false,
-            status: status_text
-          )
-          success = service.stop
-          Whirly.stop
-        rescue
-          puts "\u274c #{status_text}\n\n"
-          raise
+        if !service.daemon?
+          puts "The '#{Paint[service.name, :cyan]}' service is a static service and cannot be stopped."
+          return
         end
-        puts "#{success ? "\u2705" : "\u274c"} #{status_text}\n\n"
-        if success
-          puts "The '#{Paint[service.name, :cyan]}' service has been stopped."
+        if !service.running?
+          puts "Service '#{Paint[service.name, :cyan]}' is already stopped"
         else
-          raise ServiceOperationError, "unable to stop service"
+          puts "Stopping '#{Paint[service.name, :cyan]}' service:\n\n"
+          status_text = Paint["Stopping service", '#2794d8']
+          print "   > "
+          begin
+            Whirly.start(
+              spinner: 'star',
+              remove_after_stop: true,
+              append_newline: false,
+              status: status_text
+            )
+            success = service.stop
+            Whirly.stop
+          rescue
+            puts "\u274c #{status_text}\n\n"
+            raise
+          end
+          puts "#{success ? "\u2705" : "\u274c"} #{status_text}\n\n"
+          if success
+            puts "The '#{Paint[service.name, :cyan]}' service has been stopped."
+          else
+            raise ServiceOperationError, "unable to stop service"
+          end
         end
       end
 

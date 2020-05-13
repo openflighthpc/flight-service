@@ -31,6 +31,10 @@ module Service
   module Commands
     class Reload < Command
       def run
+        if !service.daemon?
+          puts "The '#{Paint[service.name, :cyan]}' service is a static service and cannot be reloaded."
+          return
+        end
         if service.reloadable?
           puts "Reloading '#{Paint[service.name, :cyan]}' service:\n\n"
           status_text = Paint["Reloading service", '#2794d8']
