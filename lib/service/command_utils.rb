@@ -127,7 +127,7 @@ module Service
         end
         ENV.clear
         ENV['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin'
-        ENV['HOME'] = Dir.home
+        ENV['HOME'] = (Dir.home rescue '/')
         ENV.merge!(preserved_env)
         ENV.merge!(env)
         setup_bash_funcs(ENV, fileno)
