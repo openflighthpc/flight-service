@@ -25,15 +25,30 @@
 # https://github.com/openflighthpc/flight-service
 # ==============================================================================
 require_relative '../command'
+require_relative '../table'
 require_relative '../type'
 
 module Service
   module Commands
     class List < Command
       def run
-        running = Type.each.select{|s| s.running?}.map{|s|s.name}
-        if running.any?
-          puts running.join("\n")
+        running = Type.each.select{|s| s.running?}
+        if $stdout.tty?
+          if running.any?
+            Table.emit do |t|
+              headers 'Name', 'PID'
+              running.each do |s|
+                row Paint[s.name, :cyan],
+                    s.pid
+              end
+            end
+          else
+            puts "No services are running."
+          end
+        else
+          if running.any?
+            puts running.map {|s| [s.name, s.pid].join("\t")}.join("\n")
+          end
         end
       end
     end

@@ -73,8 +73,9 @@ module Service
       c.summary = 'Show available services'
       c.action Commands, :avail
       c.description = <<EOF
-Display a list of available services and whether they are enabled for
-batch control by the 'stack' command.
+Display a list of available services and whether they are
+configurable, enabled for batch control by the 'stack' command and
+currently running.
 EOF
     end
     alias_command :av, :avail

@@ -31,7 +31,9 @@ module Service
   module Commands
     class Disable < Command
       def run
-        if service.disable
+        if !service.daemon?
+          puts "The '#{Paint[service.name, :cyan]}' service is a static service and cannot be disabled."
+        elsif service.disable
           puts "Service '#{Paint[service.name,:cyan]}' disabled."
         else
           puts "Service '#{Paint[service.name,:cyan]}' already disabled."

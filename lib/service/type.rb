@@ -141,6 +141,14 @@ module Service
       nil
     end
 
+    def configurable?
+      !configuration.nil?
+    end
+
+    def daemon?
+      File.exists?(File.join(@dir, "start.sh"))
+    end
+
     def configure(values)
       value_args = values.map {|k,v| "#{k}=#{v}"}
       run_operation('configure', args: value_args)

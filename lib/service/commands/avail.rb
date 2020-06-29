@@ -38,20 +38,40 @@ module Service
           else
             word_wrap = method(:word_wrap)
             Table.emit do |t|
-              headers 'Name', 'Summary', 'Enabled'
+              headers 'Name', 'Summary', 'Config', 'Stack', 'Status'
               Type.each do |t|
                 row Paint[t.name, :cyan],
                     word_wrap.call(
-                      Paint[t.summary, :green],
-                      line_width: TTY::Screen.width - 30
+                      Paint[t.summary + '.', :green],
+                      line_width: TTY::Screen.width - 45
                     ),
-                    t.enabled? ? 'Yes' : 'No'
+                    t.configurable? ? 'yes' : 'no',
+                    t.enabled? ? 'enabled' : (t.daemon? ? 'disabled' : 'n/a'),
+                    if !t.daemon?
+                      'static'
+                    elsif t.running?
+                      "active"
+                    else
+                      'stopped'
+                    end
               end
             end
           end
         else
           Type.each do |t|
-            puts [t.name, t.summary.chomp.gsub("\n"," "), t.enabled? ? 'Yes' : 'No'].join("\t")
+            puts [
+              t.name,
+              t.summary.chomp.gsub("\n"," "),
+              t.configurable? ? 'yes' : 'no',
+              t.enabled? ? 'enabled' : (t.daemon? ? 'disabled' : 'n/a'),
+              if !t.daemon?
+                'static'
+              elsif t.running?
+                "active"
+              else
+                'stopped'
+              end
+            ].join("\t")
           end
         end
       end

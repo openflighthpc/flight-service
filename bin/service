@@ -26,6 +26,13 @@
 # https://github.com/openflighthpc/flight-service
 # ==============================================================================
 begin
+  # This dance is required to ensure that, if we're executing under
+  # systemd for some reason (e.g. flight-service-systemd), then our
+  # subprocesses aren't captured by the service cgroup.
+  unless ENV['flight_SERVICE_constrain_cgroup'] == 'true'
+    File.write('/sys/fs/cgroup/systemd/tasks' ,$$) rescue nil
+  end
+
   lib_dir = File.expand_path(File.join(__FILE__, '../../lib'))
   $LOAD_PATH.unshift(lib_dir)
   ENV['BUNDLE_GEMFILE'] ||= File.join(__FILE__, '../../Gemfile')
