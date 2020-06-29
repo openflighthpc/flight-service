@@ -31,6 +31,10 @@ module Service
   module Commands
     class Enable < Command
       def run
+        if !service.daemon?
+          puts "The '#{Paint[service.name, :cyan]}' service is a static service and cannot be enabled."
+          return
+        end
         if service.enable
           puts "Service '#{Paint[service.name,:cyan]}' enabled."
         else

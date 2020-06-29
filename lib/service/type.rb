@@ -27,6 +27,7 @@
 require_relative 'config'
 require_relative 'errors'
 require_relative 'command_utils'
+require_relative 'env_parser'
 
 require 'sys/proctable'
 require 'fileutils'
@@ -118,6 +119,11 @@ module Service
       end
     end
 
+    def reload
+      raise ServiceOperationError, 'Service is not reloadable' unless reloadable?
+      run_operation('reload', args: [pidfile])
+    end
+
     def restart
       ctx = {}
       run_operation('restart', args: [pidfile], context: ctx).tap do |s|
@@ -133,6 +139,14 @@ module Service
       @configuration ||= YAML.load_file(File.join(@dir,'configuration.yml'))
     rescue
       nil
+    end
+
+    def configurable?
+      !configuration.nil?
+    end
+
+    def daemon?
+      File.exists?(File.join(@dir, "start.sh"))
     end
 
     def configure(values)
@@ -162,6 +176,10 @@ module Service
       self.class.enabled
     end
 
+    def pid
+      running? ? File.read(pidfile).chomp : 'n/a'
+    end
+
     def pidfile
       @pidfile ||=
         File.join(Config.service_state_dir, "#{self.name}.pid")
@@ -174,7 +192,25 @@ module Service
       end
     end
 
+    def reloadable?
+      File.exists?(File.join(@dir, "reload.sh"))
+    end
+
     private
+    def env
+      {}.tap do |h|
+        default_env_file = File.join(Config.env_dir,'default')
+        h.merge!(
+          EnvParser.parse(File.read(default_env_file))
+        ) if File.exists?(default_env_file)
+
+        service_env_file = File.join(Config.env_dir, self.name)
+        h.merge!(
+          EnvParser.parse(File.read(service_env_file))
+        ) if File.exists?(service_env_file)
+      end
+    end
+
     def run_operation(op, context: {}, args: [])
       CommandUtils.run_script(
         self.name,
@@ -182,7 +218,8 @@ module Service
         Config.service_log_dir,
         op,
         args,
-        context
+        context,
+        env
       )
     end
   end

@@ -96,6 +96,17 @@ module Service
           ).map {|p| File.expand_path(p, Config.root)}
       end
 
+      def env_dir
+        @env_dir ||=
+          File.expand_path(
+            data.fetch(
+              :env_dir,
+              default: 'etc/env'
+            ),
+            Config.root
+          )
+      end
+
       def service_etc_dir
         @service_etc_dir ||=
           File.expand_path(

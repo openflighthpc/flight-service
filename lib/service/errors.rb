@@ -29,4 +29,5 @@ module Service
   ServiceOperationError = Class.new(RuntimeError)
   InterruptedOperationError = Class.new(RuntimeError)
   ScriptNotFoundError = Class.new(RuntimeError)
+  UnknownStackActionError = Class.new(RuntimeError)
 end

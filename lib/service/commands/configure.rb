@@ -28,13 +28,14 @@ require_relative '../command'
 require_relative '../type'
 require_relative '../dialog'
 
+require 'fileutils'
 require 'yaml'
 
 module Service
   module Commands
     class Configure < Command
       def run
-        if configurable?
+        if service.configurable?
           dialog.request
           if dialog.changed?
             save(dialog.data)
@@ -44,12 +45,13 @@ module Service
             puts "No changes made."
           end
         else
-          puts "No configuration for service"
+          puts "The '#{Paint[service.name, :cyan]}' service does not provide configurable parameters."
         end
       end
 
       private
       def save(values)
+        FileUtils.mkdir_p(Config.service_etc_dir)
         File.write(data_file, values.to_yaml)
       end
 
@@ -82,10 +84,6 @@ module Service
               end
             end
           end
-      end
-
-      def configurable?
-        !service.configuration.nil?
       end
 
       def service

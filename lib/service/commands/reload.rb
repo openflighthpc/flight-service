@@ -27,41 +27,45 @@
 require_relative '../command'
 require_relative '../type'
 
-require 'whirly'
-
 module Service
   module Commands
-    class Launch < Command
+    class Reload < Command
       def run
-        if Type.enabled.any?
-          puts "Launching enabled services:\n\n"
-          Type.enabled.each do |svc|
-            service = Type[svc]
-            print "   > "
-            if service.running?
-              already_running_text = Paint["Service already running: #{service.name}", '#2794d8']
-              puts "\u2705 #{already_running_text}"
-            else
-              status_text = Paint["Starting service: #{service.name}", '#2794d8']
-              begin
-                Whirly.start(
-                  spinner: 'star',
-                  remove_after_stop: true,
-                  append_newline: false,
-                  status: status_text
-                )
-                success = service.start
-                Whirly.stop
-              rescue
-                puts "\u274c #{status_text}"
-              end
-              puts "#{success ? "\u2705" : "\u274c"} #{status_text}"
-            end
-          end
-          puts "\nEnabled services launch complete."
-        else
-          puts "No services are enabled."
+        if !service.daemon?
+          puts "The '#{Paint[service.name, :cyan]}' service is a static service and cannot be reloaded."
+          return
         end
+        if service.reloadable?
+          puts "Reloading '#{Paint[service.name, :cyan]}' service:\n\n"
+          status_text = Paint["Reloading service", '#2794d8']
+          print "   > "
+          begin
+            Whirly.start(
+              spinner: 'star',
+              remove_after_stop: true,
+              append_newline: false,
+              status: status_text
+            )
+            success = service.reload
+            Whirly.stop
+          rescue
+            puts "\u274c #{status_text}\n\n"
+            raise
+          end
+          puts "#{success ? "\u2705" : "\u274c"} #{status_text}\n\n"
+          if success
+            puts "The '#{Paint[service.name, :cyan]}' service has been reloaded."
+          else
+            raise ServiceOperationError, "unable to reload service"
+          end
+        else
+          puts "The '#{Paint[service.name, :cyan]}' service is not reloadable."
+        end
+      end
+
+      private
+      def service
+        @service ||= Type[args[0]]
       end
     end
   end

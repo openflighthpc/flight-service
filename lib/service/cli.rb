@@ -38,7 +38,7 @@ module Service
     extend Commander::Delegates
     program :application, "Flight Service"
     program :name, PROGRAM_NAME
-    program :version, "Release 2019.1 (v#{Service::VERSION})"
+    program :version, "v#{Service::VERSION}"
     program :description, 'Manage HPC environment services.'
     program :help_paging, false
     default_command :help
@@ -73,8 +73,9 @@ module Service
       c.summary = 'Show available services'
       c.action Commands, :avail
       c.description = <<EOF
-Display a list of available services and whether they are enabled for
-batch launching by the 'launch' command.
+Display a list of available services and whether they are
+configurable, enabled for batch control by the 'stack' command and
+currently running.
 EOF
     end
     alias_command :av, :avail
@@ -84,7 +85,7 @@ EOF
       c.summary = 'Enable a service'
       c.action Commands, :enable
       c.description = <<EOF
-Add SERVICE to the batch launching list used by the 'launch' command.
+Add SERVICE to the batch control list used by the 'stack' command.
 
 See 'avail' command for the list of services.
 EOF
@@ -95,7 +96,7 @@ EOF
       c.summary = 'Disable a service'
       c.action Commands, :disable
       c.description = <<EOF
-Remove SERVICE from the batch launching list used by the 'launch'
+Remove SERVICE from the batch control list used by the 'stack'
 command.
 
 See 'avail' command for the list of services.
@@ -111,14 +112,19 @@ Start a service.
 EOF
     end
 
-    command :launch do |c|
-      cli_syntax(c)
-      c.summary = 'Start all enabled services'
-      c.action Commands, :launch
-      c.description = <<EOF
-Start all services enabled for batch launching via the 'enable' command.
+    command :stack do |c|
+      cli_syntax(c, 'ACTION')
+      c.summary = 'Manage enabled services'
+      c.action Commands, :stack
 
-See 'avail' command for the list of services.
+      c.description = <<EOF
+Manage services enabled for batch control via the 'enable' command.
+
+Specify an ACTION to perform on the services, which must be one of
+'start', 'stop', 'restart', 'reload' or 'status'.
+
+See 'avail' command for the list of services and whether they are
+enabled for batch control.
 EOF
     end
 
@@ -128,6 +134,15 @@ EOF
       c.action Commands, :restart
       c.description = <<EOF
 Restart a service.
+EOF
+    end
+
+    command :reload do |c|
+      cli_syntax(c, 'SERVICE')
+      c.summary = 'Reload a service'
+      c.action Commands, :reload
+      c.description = <<EOF
+Reload a service.
 EOF
     end
 

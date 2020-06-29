@@ -32,13 +32,15 @@ require_relative 'patches/unicode-display_width'
 
 module Service
   module CommandUtils
+    PRESERVE = ['flight_ROOT']
+
     class << self
-      def run_script(name, script, dir, op, args = [], context = {})
+      def run_script(name, script, dir, op, args = [], context = {}, env = {})
         if File.exists?(script)
           with_clean_env do
             run_fork(context) do |wr|
               wr.close_on_exec = false
-              setup_bash_funcs(ENV, wr.fileno)
+              setup_env(wr.fileno, env)
               log_file = File.join(
                 dir,
                 "#{name}.#{op}.log"
@@ -117,6 +119,18 @@ module Service
         Whirly.stop
         puts "#{success ? "\u2705" : "\u274c"} #{Paint[@stage, '#2794d8']}"
         @stage = nil
+      end
+
+      def setup_env(fileno, env)
+        preserved_env = {}.tap do |h|
+          PRESERVE.each {|k| h[k] = ENV[k]}
+        end
+        ENV.clear
+        ENV['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin'
+        ENV['HOME'] = (Dir.home rescue '/')
+        ENV.merge!(preserved_env)
+        ENV.merge!(env)
+        setup_bash_funcs(ENV, fileno)
       end
 
       def setup_bash_funcs(h, fileno)

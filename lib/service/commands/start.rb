@@ -33,6 +33,10 @@ module Service
   module Commands
     class Start < Command
       def run
+        if !service.daemon?
+          puts "The '#{Paint[service.name, :cyan]}' service is a static service and cannot be started."
+          return
+        end
         if service.running?
           puts "Service '#{Paint[service.name, :cyan]}' is already running"
         else

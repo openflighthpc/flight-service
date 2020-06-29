@@ -31,6 +31,10 @@ module Service
   module Commands
     class Restart < Command
       def run
+        if !service.daemon?
+          puts "The '#{Paint[service.name, :cyan]}' service is a static service and cannot be restarted."
+          return
+        end
         puts "Restarting '#{Paint[service.name, :cyan]}' service:\n\n"
         status_text = Paint["Restarting service", '#2794d8']
         print "   > "

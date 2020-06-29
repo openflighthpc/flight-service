@@ -32,13 +32,23 @@ module Service
     class Status < Command
       def run
         if $stdout.tty?
-          if service.running?
-            puts "Service '#{Paint[service.name, :cyan]}' is running"
+          if !service.daemon?
+            puts "Service '#{Paint[service.name, :cyan]}' is a static service"
+          elsif service.running?
+            puts "Service '#{Paint[service.name, :cyan]}' is active (#{service.pid})"
           else
             puts "Service '#{Paint[service.name, :cyan]}' is stopped"
           end
         else
-          puts service.running? ? 'running' : 'stopped'
+          state =
+            if !service.daemon?
+              'static'
+            elsif service.running?
+              "active\t#{service.pid}"
+            else
+              'stopped'
+            end
+          puts state
         end
       end
 
