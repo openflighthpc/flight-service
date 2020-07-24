@@ -32,7 +32,7 @@ require_relative 'patches/unicode-display_width'
 
 module Service
   module CommandUtils
-    PRESERVE = ['flight_ROOT']
+    PRESERVE = ['flight_ROOT', 'USER', 'LOGNAME']
 
     class << self
       def run_script(name, script, dir, op, args = [], context = {}, env = {})
@@ -127,7 +127,7 @@ module Service
         end
         ENV.clear
         ENV['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin'
-        ENV['HOME'] = (Dir.home rescue '/')
+        ENV['HOME'] = (Dir.home(preserved_env['USER']) rescue '/')
         ENV.merge!(preserved_env)
         ENV.merge!(env)
         setup_bash_funcs(ENV, fileno)
