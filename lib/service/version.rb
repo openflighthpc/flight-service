@@ -25,5 +25,5 @@
 # https://github.com/openflighthpc/flight-service
 # ==============================================================================
 module Service
-  VERSION = '1.1.0'
+  VERSION = '1.1.1'
 end
