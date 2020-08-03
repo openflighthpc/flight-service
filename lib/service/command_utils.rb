@@ -134,7 +134,7 @@ module Service
       end
 
       def setup_bash_funcs(h, fileno)
-        h['BASH_FUNC_flight_tool_comms()'] = <<EOF
+        tool_comms = <<EOF
 () { local msg=$1
  shift
  if [ "$1" ]; then
@@ -144,11 +144,20 @@ module Service
  fi
 }
 EOF
+        h['BASH_FUNC_flight_tool_comms()'] = tool_comms
         h['BASH_FUNC_tool_err()'] = "() { flight_tool_comms ERR \"$@\"\n}"
         h['BASH_FUNC_tool_stage()'] = "() { flight_tool_comms STAGE \"$@\"\n}"
         h['BASH_FUNC_tool_set()'] = "() { flight_tool_comms SET \"$@\"\n}"
         h['BASH_FUNC_tool_fileno()'] = "() { echo #{fileno} \n}"
         h['BASH_FUNC_tool_bg()'] = "() { setsid \"$@\" #{fileno}>&- </dev/null &>/dev/null &\n}"
+
+        # Now set them all again in a way that makes Ubuntu happy.
+        h['BASH_FUNC_flight_tool_comms%%'] = tool_comms
+        h['BASH_FUNC_tool_err%%'] = "() { flight_tool_comms ERR \"$@\"\n}"
+        h['BASH_FUNC_tool_stage%%'] = "() { flight_tool_comms STAGE \"$@\"\n}"
+        h['BASH_FUNC_tool_set%%'] = "() { flight_tool_comms SET \"$@\"\n}"
+        h['BASH_FUNC_tool_fileno%%'] = "() { echo #{fileno} \n}"
+        h['BASH_FUNC_tool_bg%%'] = "() { setsid \"$@\" #{fileno}>&- </dev/null &>/dev/null &\n}"
       end
 
       def with_clean_env(&block)
