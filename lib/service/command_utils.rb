@@ -144,6 +144,7 @@ module Service
  fi
 }
 EOF
+        # Set various bash functions in a way that Centos is happy with.
         h['BASH_FUNC_flight_tool_comms()'] = tool_comms
         h['BASH_FUNC_tool_err()'] = "() { flight_tool_comms ERR \"$@\"\n}"
         h['BASH_FUNC_tool_stage()'] = "() { flight_tool_comms STAGE \"$@\"\n}"
@@ -153,11 +154,11 @@ EOF
 
         # Now set them all again in a way that makes Ubuntu happy.
         h['BASH_FUNC_flight_tool_comms%%'] = tool_comms
-        h['BASH_FUNC_tool_err%%'] = "() { flight_tool_comms ERR \"$@\"\n}"
-        h['BASH_FUNC_tool_stage%%'] = "() { flight_tool_comms STAGE \"$@\"\n}"
-        h['BASH_FUNC_tool_set%%'] = "() { flight_tool_comms SET \"$@\"\n}"
-        h['BASH_FUNC_tool_fileno%%'] = "() { echo #{fileno} \n}"
-        h['BASH_FUNC_tool_bg%%'] = "() { setsid \"$@\" #{fileno}>&- </dev/null &>/dev/null &\n}"
+        h['BASH_FUNC_tool_err%%'] = h['BASH_FUNC_tool_err()']
+        h['BASH_FUNC_tool_stage%%'] = h['BASH_FUNC_tool_stage()']
+        h['BASH_FUNC_tool_set%%'] = h['BASH_FUNC_tool_set()']
+        h['BASH_FUNC_tool_fileno%%'] = h['BASH_FUNC_tool_fileno()']
+        h['BASH_FUNC_tool_bg%%'] = h['BASH_FUNC_tool_bg()']
       end
 
       def with_clean_env(&block)
