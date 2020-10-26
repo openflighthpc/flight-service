@@ -31,7 +31,16 @@ module Service
   module Commands
     class Configure < Command
       def run
-        raise NotImplementedError
+        puts Paint[<<~WARN, :red, :bold]
+          DEPRECATED: The configure command has been removed from flight-service
+          Executing the following command instead:
+
+          #{Paint[Config.configure_command + ' ' + args.first, :yellow]}
+        WARN
+
+        Bundler.with_unbundled_env do
+          Kernel.exec(*Config.configure_command.split(' '), args.first)
+        end
       end
     end
   end

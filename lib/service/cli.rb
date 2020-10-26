@@ -178,8 +178,9 @@ EOF
       cli_syntax(c, 'SERVICE')
       c.summary = 'Configure a service'
       c.action Commands, :configure
+      c.hidden = true
       c.description = <<EOF
-Perform configuration of a service.
+DEPRECATED: Please use "flight configure" instead.
 EOF
     end
 
