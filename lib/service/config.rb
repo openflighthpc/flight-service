@@ -86,6 +86,10 @@ module Service
         @root ||= File.expand_path(File.join(__dir__, '..', '..'))
       end
 
+      def configure_command
+        data.fetch(:configure_command, default: '/opt/flight/bin/flight configure run')
+      end
+
       def type_paths
         @type_paths ||=
           data.fetch(
