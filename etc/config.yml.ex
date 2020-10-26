@@ -4,7 +4,7 @@
 #  - etc/types
 # Directory containing environment setup for service control scripts
 #env_dir: etc/env
-# Directory to use for configuration script value management
+# Directory to use for storing runtime data
 #service_etc_dir: var/lib
 # Directory for maintaining PID files
 #service_state_dir: var/run

@@ -14,7 +14,6 @@ GEM
     ffi (1.11.1)
     highline (1.7.10)
     hpricot (0.8.6)
-    mrdialog (1.0.3)
     mustache (1.1.0)
     necromancer (0.5.1)
     paint (2.1.1)
@@ -62,7 +61,6 @@ PLATFORMS
 
 DEPENDENCIES
   commander-openflighthpc (~> 1.1.0)
-  mrdialog
   ronn
   sys-proctable
   tty-config

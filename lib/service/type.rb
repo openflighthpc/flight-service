@@ -149,11 +149,6 @@ module Service
       File.exists?(File.join(@dir, "start.sh"))
     end
 
-    def configure(values)
-      value_args = values.map {|k,v| "#{k}=#{v}"}
-      run_operation('configure', args: value_args)
-    end
-
     def enable
       return false if enabled?
       enabled << self.name
