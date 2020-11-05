@@ -56,7 +56,8 @@ module Service
                 Dir[File.join(p,'*')].sort.each do |d|
                   begin
                     md = YAML.load_file(File.join(d,'metadata.yml'))
-                    h[md[:name].to_sym] = Type.new(md, d)
+                    type = Type.new(md, d)
+                    h[md[:name].to_sym] = type if type.daemon?
                   rescue
                     nil
                   end
@@ -145,6 +146,8 @@ module Service
       !configuration.nil?
     end
 
+    # TODO: Remove me when static services are migrated to flight-configure formally
+    #       Probably replace with some validation on the service?
     def daemon?
       File.exists?(File.join(@dir, "start.sh"))
     end

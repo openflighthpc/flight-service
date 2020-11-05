@@ -47,9 +47,7 @@ module Service
                     ),
                     t.configurable? ? 'yes' : 'no',
                     t.enabled? ? 'enabled' : (t.daemon? ? 'disabled' : 'n/a'),
-                    if !t.daemon?
-                      'static'
-                    elsif t.running?
+                    if t.running?
                       "active"
                     else
                       'stopped'
