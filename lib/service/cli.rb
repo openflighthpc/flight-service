@@ -178,6 +178,7 @@ EOF
       cli_syntax(c, 'SERVICE')
       c.summary = 'Configure a service'
       c.action Commands, :configure
+      c.option '--force', 'Execute the post configure script even when the config has not changed'
       c.description = <<EOF
 Perform configuration of a service.
 EOF

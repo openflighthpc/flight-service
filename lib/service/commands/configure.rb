@@ -37,12 +37,15 @@ module Service
       def run
         if service.configurable?
           dialog.request
-          if dialog.changed?
+          if options.force || dialog.changed?
             save(dialog.data)
             service.configure(dialog.data)
             puts "Changes applied."
           else
-            puts "No changes made."
+            puts Paint[<<~WARN.chomp, :red]
+              The configuration has not changed. Skipping the post configure script.
+              The script can be ran using the following flag: #{Paint["--force", :yellow]}
+            WARN
           end
         else
           puts "The '#{Paint[service.name, :cyan]}' service does not provide configurable parameters."
