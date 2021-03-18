@@ -27,16 +27,45 @@
 require_relative '../command'
 require_relative '../type'
 
+require 'tty-markdown'
+require 'erb'
+require 'ostruct'
+
 module Service
   module Commands
     class Info < Command
+      TEMPLATE = <<~ERB
+      # <%= title %>
+
+      <%= text %>
+
+      <% values.each do |opts| -%>
+      ## <%= opts['label'] %>
+      *Key:* <%= opts['key'] %>
+      *Default:* <%= opts['value'] %>
+      *Value:* <%= data[opts['key']] %>
+
+      <% end -%>
+      ERB
+
       def run
-        puts "#{self.class.name} -- #{service.inspect}"
+        bind = OpenStruct.new(service.configuration.merge(data: data)).instance_exec { self.binding }
+        markdown = ERB.new(TEMPLATE, nil, '-').result(bind)
+        puts TTY::Markdown.parse(markdown)
       end
 
       private
+
+      def data
+        @data ||= File.exists?(data_file) ? YAML.load_file(data_file) : {}
+      end
+
+      def data_file
+        File.join(Config.service_etc_dir,"#{service.name}.yml")
+      end
+
       def service
-        Type[args[0]]
+        @service ||= Type[args[0]]
       end
     end
   end

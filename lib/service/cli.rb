@@ -164,15 +164,15 @@ Disable a service.
 EOF
     end
 
-#     command :info do |c|
-#       cli_syntax(c, 'SERVICE')
-#       c.summary = 'Show details about a service'
-#       c.action Commands, :info
-#       c.description = <<EOF
-# Display more detail about a service and its current configuration.
-# EOF
-#     end
-#     alias_command :show, :info
+    command :info do |c|
+      cli_syntax(c, 'SERVICE')
+      c.summary = 'Show details about a service'
+      c.action Commands, :info
+      c.description = <<EOF
+Display more detail about a service and its current configuration.
+EOF
+    end
+    alias_command :show, :info
 
     command :configure do |c|
       cli_syntax(c, 'SERVICE')
