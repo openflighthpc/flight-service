@@ -66,6 +66,19 @@ module Service
           end
       end
 
+      # The enabled list of services may contain references to unknown types
+      # This can happen when a service is uninstalled without being disabled first
+      # In these cases, the service should be skipped
+      def safe_enabled_types
+        @enabled_types ||= enabled.map do |id|
+          begin
+            self[id]
+          rescue UnknownServiceTypeError
+            $stderr.puts "Skipping unknown service: #{id}"
+          end
+        end.reject(&:nil?)
+      end
+
       def enabled
         @enabled ||=
           begin
