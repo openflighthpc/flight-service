@@ -179,6 +179,10 @@ EOF
       c.summary = 'Configure a service'
       c.action Commands, :configure
       c.option '--force', 'Execute the post configure script even when the config has not changed'
+      c.option '--config JSON|@filepath|@-', <<~MSG.chomp
+        The configuration values to be saved as JSON
+        Alternatively specify a file containing the config with @filepath or STDIN as @-
+      MSG
       c.description = <<EOF
 Perform configuration of a service.
 EOF

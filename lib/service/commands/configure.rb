@@ -36,10 +36,25 @@ module Service
     class Configure < Command
       def run
         if service.configurable?
-          dialog.request
-          if options.force || dialog.changed?
-            save(dialog.data)
-            service.configure(dialog.data)
+          # Load the data either via the dialog or non-interactively
+          data = if options.config
+            json = begin
+                     JSON.parse(config_input)
+                   rescue JSON::ParserError
+                     raise InvalidInput, 'The --config input is not valid JSON'
+                   end
+            unless json.is_a? Hash
+              raise InvalidInput, 'The --config input does not produce a hash'
+            end
+            dialog.data.merge(json)
+          else
+            dialog.request
+            dialog.data
+          end
+
+          if options.force || options.config || dialog.changed?
+            save(data)
+            service.configure(data)
             puts "Changes applied."
           else
             puts Paint[<<~WARN.chomp, :red]
@@ -59,7 +74,7 @@ module Service
       end
 
       def load
-        YAML.load_file(data_file) rescue {}
+        YAML.load_file(data_file).to_h rescue {}
       end
 
       def data_file
@@ -68,6 +83,21 @@ module Service
 
       def data
         @data ||= load
+      end
+
+      def config_input
+        if options.config == '@-'
+          $stdin.read
+        elsif options.config[0] == '@'
+          path = options.config[1..]
+          if File.exists? path
+            File.read(path)
+          else
+            raise InvalidInput, "Could not locate file: #{path}"
+          end
+        else
+          options.config
+        end
       end
 
       def dialog

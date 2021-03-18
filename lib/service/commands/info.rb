@@ -57,7 +57,7 @@ module Service
       private
 
       def data
-        @data ||= File.exists?(data_file) ? YAML.load_file(data_file) : {}
+        @data ||= File.exists?(data_file) ? YAML.load_file(data_file).to_h : {}
       end
 
       def data_file
