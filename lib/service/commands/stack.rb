@@ -93,7 +93,7 @@ module Service
       end
 
       def restart
-        Type.safe_enabled_types.each do |service|
+        Type.enabled.each do |service|
           print "   > "
           status_text = Paint["Restarting service: #{service.name}", '#2794d8']
           begin
@@ -107,7 +107,7 @@ module Service
       end
 
       def stop
-        Type.safe_enabled_types.each do |service|
+        Type.enabled.each do |service|
           print "   > "
           if !service.running?
             text = Paint["Service already stopped: #{service.name}", '#2794d8']
@@ -126,7 +126,7 @@ module Service
       end
 
       def reload
-        Type.safe_enabled_types.each do |service|
+        Type.enabled.each do |service|
           print "   > "
           if !service.running?
             text = Paint["Service not running: #{service.name}", '#2794d8']
