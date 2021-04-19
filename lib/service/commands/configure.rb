@@ -86,7 +86,7 @@ module Service
       end
 
       def config_input
-        if options.config == '@-'
+        if ['@-', '@/dev/stdin'].include? options.config
           $stdin.read
         elsif options.config[0] == '@'
           path = options.config[1..]
