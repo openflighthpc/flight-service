@@ -27,38 +27,34 @@
 require_relative '../command'
 require_relative '../type'
 
-require 'tty-markdown'
-require 'erb'
-require 'ostruct'
-
 module Service
   module Commands
     class Info < Command
-      TEMPLATE = <<~ERB
-      # <%= title %>
-
-      <%= text %>
-
-      <% values.each do |opts| -%>
-      ## <%= opts['label'] %>
-      *Key:* <%= opts['key'] %>
-      *Default:* <%= opts['value'] %>
-      *Value:* <%= data[opts['key']] %>
-
-      <% end -%>
-      ERB
-
       def run
-        bind = OpenStruct.new(service.configuration.merge(data: data)).instance_exec { self.binding }
-        markdown = ERB.new(TEMPLATE, nil, '-').result(bind)
-        puts TTY::Markdown.parse(markdown)
+        values = (service.configuration || {}).fetch('values', {})
+        data = File.exists?(data_file) ? YAML.load_file(data_file).to_h : {}
+        if values.empty?
+          $stderr.puts 'No configuration options available'
+        elsif $stdout.tty?
+          Table.emit do |t|
+            headers 'Label', 'Key', 'Default', 'Value'
+            values.each do |opts|
+              row Paint[opts['label'], :cyan],
+                  opts['key'],
+                  opts['value'] || '(none)',
+                  data[opts['key']] || '(none)'
+            end
+          end
+        else
+          values.each do |opts|
+            puts [
+              opts['label'], opts['key'], opts['value'], data[opts['key']]
+            ].join("\t")
+          end
+        end
       end
 
       private
-
-      def data
-        @data ||= File.exists?(data_file) ? YAML.load_file(data_file).to_h : {}
-      end
 
       def data_file
         File.join(Config.service_etc_dir,"#{service.name}.yml")
