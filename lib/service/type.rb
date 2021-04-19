@@ -66,41 +66,29 @@ module Service
           end
       end
 
-      # The enabled list of services may contain references to unknown types
-      # This can happen when a service is uninstalled without being disabled first
-      # In these cases, the service should be skipped
-      def safe_enabled_types
-        @enabled_types ||= enabled.map do |id|
-          begin
-            self[id]
-          rescue UnknownServiceTypeError
-            $stderr.puts "Skipping unknown service: #{id}"
+      def enabled
+        @enabled ||= begin
+          names = begin
+            YAML.load_file(File.join(Config.service_etc_dir, 'enabled.yml'))
+          rescue
+            []
           end
-        end.reject(&:nil?)
+          names.map do |name|
+            begin
+              self[name]
+            rescue
+              nil
+            end
+          end.reject(&:nil?)
+        end
       end
 
-      def enabled
-        @enabled ||=
-          begin
-            (
-              YAML.load_file(
-                File.join(
-                  Config.service_etc_dir,
-                  'enabled.yml'
-                )
-              ) rescue []
-            ).tap do |h|
-              class << h
-                def save
-                  FileUtils.mkdir_p(Config.service_etc_dir)
-                  File.write(
-                    File.join(Config.service_etc_dir, 'enabled.yml'),
-                    to_yaml
-                  )
-                end
-              end
-            end
-          end
+      def save_enabled_file
+        FileUtils.mkdir_p(Config.service_etc_dir)
+        File.write(
+          File.join(Config.service_etc_dir, 'enabled.yml'),
+          enabled.map(&:name).to_yaml
+        )
       end
     end
 
@@ -169,24 +157,20 @@ module Service
 
     def enable
       return false if enabled?
-      enabled << self.name
-      enabled.save
+      self.class.enabled << self
+      self.class.save_enabled_file
       true
     end
 
     def enabled?
-      enabled.include?(self.name)
+      self.class.enabled.include?(self)
     end
 
     def disable
       return false unless enabled?
-      enabled.delete(self.name)
-      enabled.save
+      self.class.enabled.delete(self)
+      self.class.save_enabled_file
       true
-    end
-
-    def enabled
-      self.class.enabled
     end
 
     def pid

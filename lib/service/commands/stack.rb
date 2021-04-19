@@ -60,21 +60,21 @@ module Service
         if $stdout.tty?
           Table.emit do |t|
             headers 'Service', 'Status', 'PID'
-            Type.safe_enabled_types.each do |t|
+            Type.enabled.each do |t|
               row Paint[t.name, :cyan],
                   t.running? ? 'active' : 'stopped',
                   t.pid
             end
           end
         else
-          Type.safe_enabled_types.each do |t|
+          Type.enabled.each do |t|
             puts [t.name, t.running? ? 'active' : 'stopped', t.pid].join("\t")
           end
         end
       end
 
       def start
-        Type.safe_enabled_types.each do |service|
+        Type.enabled.each do |service|
           print "   > "
           if service.running?
             text = Paint["Service already running: #{service.name}", '#2794d8']
