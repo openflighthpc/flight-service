@@ -77,17 +77,25 @@ module Service
             begin
               self[name]
             rescue
+              @missing_enabled_types ||= []
+              @missing_enabled_types << name
               nil
             end
-          end.reject(&:nil?)
-        end
+          end
+        end.reject(&:nil?)
+      end
+
+      def missing_enabled_types
+        enabled # Ensure the cache is populated
+        @missing_enabled_types
       end
 
       def save_enabled_file
         FileUtils.mkdir_p(Config.service_etc_dir)
+        types = [*enabled.map(&:name), *missing_enabled_types]
         File.write(
           File.join(Config.service_etc_dir, 'enabled.yml'),
-          enabled.map(&:name).to_yaml
+          types
         )
       end
     end
