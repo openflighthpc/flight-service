@@ -60,24 +60,21 @@ module Service
         if $stdout.tty?
           Table.emit do |t|
             headers 'Service', 'Status', 'PID'
-            Type.enabled.each do |svc|
-              t = Type[svc]
+            Type.enabled.each do |t|
               row Paint[t.name, :cyan],
                   t.running? ? 'active' : 'stopped',
                   t.pid
             end
           end
         else
-          Type.enabled.each do |svc|
-            t = Type[svc]
+          Type.enabled.each do |t|
             puts [t.name, t.running? ? 'active' : 'stopped', t.pid].join("\t")
           end
         end
       end
 
       def start
-        Type.enabled.each do |svc|
-          service = Type[svc]
+        Type.enabled.each do |service|
           print "   > "
           if service.running?
             text = Paint["Service already running: #{service.name}", '#2794d8']
@@ -96,8 +93,7 @@ module Service
       end
 
       def restart
-        Type.enabled.each do |svc|
-          service = Type[svc]
+        Type.enabled.each do |service|
           print "   > "
           status_text = Paint["Restarting service: #{service.name}", '#2794d8']
           begin
@@ -111,8 +107,7 @@ module Service
       end
 
       def stop
-        Type.enabled.each do |svc|
-          service = Type[svc]
+        Type.enabled.each do |service|
           print "   > "
           if !service.running?
             text = Paint["Service already stopped: #{service.name}", '#2794d8']
@@ -131,8 +126,7 @@ module Service
       end
 
       def reload
-        Type.enabled.each do |svc|
-          service = Type[svc]
+        Type.enabled.each do |service|
           print "   > "
           if !service.running?
             text = Paint["Service not running: #{service.name}", '#2794d8']

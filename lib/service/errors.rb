@@ -30,4 +30,5 @@ module Service
   InterruptedOperationError = Class.new(RuntimeError)
   ScriptNotFoundError = Class.new(RuntimeError)
   UnknownStackActionError = Class.new(RuntimeError)
+  InvalidInput = Class.new(RuntimeError)
 end

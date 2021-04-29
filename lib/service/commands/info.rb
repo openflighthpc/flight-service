@@ -31,12 +31,37 @@ module Service
   module Commands
     class Info < Command
       def run
-        puts "#{self.class.name} -- #{service.inspect}"
+        values = (service.configuration || {}).fetch('values', {})
+        data = File.exists?(data_file) ? YAML.load_file(data_file).to_h : {}
+        if values.empty?
+          $stderr.puts 'No configuration options available'
+        elsif $stdout.tty?
+          Table.emit do |t|
+            headers 'Label', 'Key', 'Default', 'Value'
+            values.each do |opts|
+              row Paint[opts['label'], :cyan],
+                  opts['key'],
+                  opts['value'] || '(none)',
+                  data[opts['key']] || '(none)'
+            end
+          end
+        else
+          values.each do |opts|
+            puts [
+              opts['label'], opts['key'], opts['value'], data[opts['key']]
+            ].join("\t")
+          end
+        end
       end
 
       private
+
+      def data_file
+        File.join(Config.service_etc_dir,"#{service.name}.yml")
+      end
+
       def service
-        Type[args[0]]
+        @service ||= Type[args[0]]
       end
     end
   end

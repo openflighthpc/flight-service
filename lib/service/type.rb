@@ -67,27 +67,36 @@ module Service
       end
 
       def enabled
-        @enabled ||=
-          begin
-            (
-              YAML.load_file(
-                File.join(
-                  Config.service_etc_dir,
-                  'enabled.yml'
-                )
-              ) rescue []
-            ).tap do |h|
-              class << h
-                def save
-                  FileUtils.mkdir_p(Config.service_etc_dir)
-                  File.write(
-                    File.join(Config.service_etc_dir, 'enabled.yml'),
-                    to_yaml
-                  )
-                end
-              end
+        @enabled ||= begin
+          names = begin
+            YAML.load_file(File.join(Config.service_etc_dir, 'enabled.yml'))
+          rescue
+            []
+          end
+          names.map do |name|
+            begin
+              self[name]
+            rescue
+              @missing_enabled_types ||= []
+              @missing_enabled_types << name
+              nil
             end
           end
+        end.reject(&:nil?)
+      end
+
+      def missing_enabled_types
+        enabled # Ensure the cache is populated
+        @missing_enabled_types
+      end
+
+      def save_enabled_file
+        FileUtils.mkdir_p(Config.service_etc_dir)
+        types = [*enabled.map(&:name), *missing_enabled_types]
+        File.write(
+          File.join(Config.service_etc_dir, 'enabled.yml'),
+          types
+        )
       end
     end
 
@@ -156,24 +165,20 @@ module Service
 
     def enable
       return false if enabled?
-      enabled << self.name
-      enabled.save
+      self.class.enabled << self
+      self.class.save_enabled_file
       true
     end
 
     def enabled?
-      enabled.include?(self.name)
+      self.class.enabled.include?(self)
     end
 
     def disable
       return false unless enabled?
-      enabled.delete(self.name)
-      enabled.save
+      self.class.enabled.delete(self)
+      self.class.save_enabled_file
       true
-    end
-
-    def enabled
-      self.class.enabled
     end
 
     def pid

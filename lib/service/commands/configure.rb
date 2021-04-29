@@ -36,13 +36,31 @@ module Service
     class Configure < Command
       def run
         if service.configurable?
-          dialog.request
-          if dialog.changed?
-            save(dialog.data)
-            service.configure(dialog.data)
+          # Load the data either via the dialog or non-interactively
+          data = if options.config
+            json = begin
+                     JSON.parse(config_input)
+                   rescue JSON::ParserError
+                     raise InvalidInput, 'The --config input is not valid JSON'
+                   end
+            unless json.is_a? Hash
+              raise InvalidInput, 'The --config input does not produce a hash'
+            end
+            dialog.data.merge(json)
+          else
+            dialog.request
+            dialog.data
+          end
+
+          if options.force || options.config || dialog.changed?
+            save(data)
+            service.configure(data)
             puts "Changes applied."
           else
-            puts "No changes made."
+            puts Paint[<<~WARN.chomp, :red]
+              The configuration has not changed. Skipping the post configure script.
+              The script can be ran using the following flag: #{Paint["--force", :yellow]}
+            WARN
           end
         else
           puts "The '#{Paint[service.name, :cyan]}' service does not provide configurable parameters."
@@ -56,7 +74,7 @@ module Service
       end
 
       def load
-        YAML.load_file(data_file) rescue {}
+        YAML.load_file(data_file).to_h rescue {}
       end
 
       def data_file
@@ -65,6 +83,21 @@ module Service
 
       def data
         @data ||= load
+      end
+
+      def config_input
+        if ['@-', '@/dev/stdin'].include? options.config
+          $stdin.read
+        elsif options.config[0] == '@'
+          path = options.config[1..]
+          if File.exists? path
+            File.read(path)
+          else
+            raise InvalidInput, "Could not locate file: #{path}"
+          end
+        else
+          options.config
+        end
       end
 
       def dialog

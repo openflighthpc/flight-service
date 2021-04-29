@@ -54,7 +54,7 @@ module Service
       end
     end
 
-    if ENV['TERM'] !~ /^xterm/ && ENV['TERM'] !~ /rxvt/
+    if [/^xterm/, /rxvt/, /256color/].all? { |regex| ENV['TERM'] !~ regex }
       Paint.mode = 0
     end
 
@@ -164,20 +164,25 @@ Disable a service.
 EOF
     end
 
-#     command :info do |c|
-#       cli_syntax(c, 'SERVICE')
-#       c.summary = 'Show details about a service'
-#       c.action Commands, :info
-#       c.description = <<EOF
-# Display more detail about a service and its current configuration.
-# EOF
-#     end
-#     alias_command :show, :info
+    command :info do |c|
+      cli_syntax(c, 'SERVICE')
+      c.summary = 'Show details about a service'
+      c.action Commands, :info
+      c.description = <<EOF
+Display more detail about a service and its current configuration.
+EOF
+    end
+    alias_command :show, :info
 
     command :configure do |c|
       cli_syntax(c, 'SERVICE')
       c.summary = 'Configure a service'
       c.action Commands, :configure
+      c.option '--force', 'Execute the post configure script even when the config has not changed'
+      c.option '--config JSON|@filepath|@-', <<~MSG.chomp
+        The configuration values to be saved as JSON
+        Alternatively specify a file containing the config with @filepath or STDIN as @-
+      MSG
       c.description = <<EOF
 Perform configuration of a service.
 EOF
