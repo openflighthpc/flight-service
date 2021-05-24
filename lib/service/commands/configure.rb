@@ -35,6 +35,13 @@ module Service
   module Commands
     class Configure < Command
       def run
+        if !$stdout.tty? && !options.config
+          raise InvalidInput, <<~ERROR.chomp
+            Can not continue within a non-interactive terminal!
+            Please specify the configs with the following flag: #{Paint['--config JSON', :yellow]}
+          ERROR
+        end
+
         if service.configurable?
           # Load the data either via the dialog or non-interactively
           data = if options.config
