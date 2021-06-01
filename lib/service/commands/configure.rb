@@ -37,7 +37,7 @@ module Service
       def run
         if !$stdout.tty? && !options.config
           raise InvalidInput, <<~ERROR.chomp
-            Can not continue within a non-interactive terminal!
+            Cannot continue within a non-interactive terminal!
             Please specify the configs with the following flag: #{Paint['--config JSON', :yellow]}
           ERROR
         end
