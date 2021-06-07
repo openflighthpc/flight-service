@@ -125,6 +125,16 @@ module Service
         preserved_env = {}.tap do |h|
           PRESERVE.each {|k| h[k] = ENV[k]}
         end
+        # Some of our services don't like `USER` being absent.  Some service
+        # launchers, such as flight-plugin-system-systemd-service, don't set
+        # `USER`. We workaround these issues here.
+        if preserved_env['USER'].nil?  || preserved_env['USER'] == ""
+          preserved_env['USER'] = Etc.getpwuid(Process.uid).name
+        end
+        if preserved_env['LOGNAME'].nil? || preserved_env['LOGNAME'] == ""
+          preserved_env['LOGNAME'] = preserved_env['USER']
+        end
+
         ENV.clear
         ENV['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin'
         ENV['HOME'] = (Dir.home(preserved_env['USER']) rescue '/')
