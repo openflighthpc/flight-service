@@ -129,6 +129,13 @@ module Service
           )
       end
 
+      def timeout
+        @timeout ||= begin
+          str = data.fetch(:timeout, default: '5')
+          Integer(str)
+        end
+      end
+
       def service_log_dir
         @service_log_dir ||=
           File.expand_path(

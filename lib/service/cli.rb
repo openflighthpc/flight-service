@@ -150,6 +150,8 @@ EOF
       cli_syntax(c, 'SERVICE')
       c.summary = 'Stop a service'
       c.action Commands, :stop
+      c.option '--force',
+        'Attempt a graceful shutdown before hard terminating the service'
       c.description = <<EOF
 Stop a service.
 EOF
