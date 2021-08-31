@@ -32,6 +32,7 @@ require_relative 'env_parser'
 require 'sys/proctable'
 require 'fileutils'
 require 'yaml'
+require 'timeout'
 
 module Service
   class Type
@@ -120,11 +121,15 @@ module Service
       end
     end
 
-    def stop
-      run_operation('stop', args: [pidfile]).tap do |s|
-        if s
-          FileUtils.rm_f(pidfile)
-        end
+    def stop(force: false)
+      run_operation('stop', args: [pidfile])
+      if force && running?
+        kill_via_signal('TERM') || kill_via_signal('KILL')
+      elsif running?
+        false
+      else
+        FileUtils.rm_f(pidfile)
+        true
       end
     end
 
@@ -202,6 +207,21 @@ module Service
     end
 
     private
+
+    def kill_via_signal(sig)
+      # The process has "successfully" stopped if it doesn't otherwise exist
+      return true unless File.exists?(pidfile)
+      Process.kill(-Signal.list[sig], Integer(File.read(pidfile).chomp))
+      Timeout.timeout(Config.timeout) do
+        sleep(Config.timeout.to_f / 100) while running?
+      end
+      true
+    rescue Errno::ESRCH
+      return true
+    rescue Timeout::Error
+      return false
+    end
+
     def env
       {}.tap do |h|
         default_env_file = File.join(Config.env_dir,'default')

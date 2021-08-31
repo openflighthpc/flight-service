@@ -48,7 +48,7 @@ module Service
               append_newline: false,
               status: status_text
             )
-            success = service.stop
+            success = service.stop(force: options.force)
             Whirly.stop
           rescue
             puts "\u274c #{status_text}\n\n"
