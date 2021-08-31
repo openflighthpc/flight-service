@@ -124,7 +124,7 @@ module Service
     def stop(force: false)
       run_operation('stop', args: [pidfile])
       if force && running?
-        send_signal('TERM') || send_signal('KILL')
+        kill_via_signal('TERM') || kill_via_signal('KILL')
       elsif running?
         false
       else
@@ -208,7 +208,7 @@ module Service
 
     private
 
-    def send_signal(sig)
+    def kill_via_signal(sig)
       # The process has "successfully" stopped if it doesn't otherwise exist
       return true unless File.exists?(pidfile)
       Process.kill(-Signal.list[sig], Integer(File.read(pidfile).chomp))
