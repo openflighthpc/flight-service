@@ -123,6 +123,7 @@ module Service
 
     def stop(force: false)
       run_operation('stop', args: [pidfile])
+      sleep_whilst_running
       if force && running?
         kill_via_signal('TERM') || kill_via_signal('KILL')
       elsif running?
@@ -212,14 +213,22 @@ module Service
       # The process has "successfully" stopped if it doesn't otherwise exist
       return true unless File.exists?(pidfile)
       Process.kill(-Signal.list[sig], Integer(File.read(pidfile).chomp))
+      sleep_whilst_running
+    rescue Errno::ESRCH
+      return true
+    end
+
+    # Sleep for Config.timeout seconds or until the process is no longer
+    # running.
+    #
+    # Return true if the process exits or false if the timeout is reached.
+    def sleep_whilst_running
       Timeout.timeout(Config.timeout) do
         sleep(Config.timeout.to_f / 100) while running?
       end
       true
-    rescue Errno::ESRCH
-      return true
     rescue Timeout::Error
-      return false
+      false
     end
 
     def env
