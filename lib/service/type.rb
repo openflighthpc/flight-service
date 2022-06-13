@@ -122,7 +122,8 @@ module Service
     end
 
     def stop(force: false)
-      run_operation('stop', args: [pidfile])
+      args = [pidfile].tap { |a| a << "--force" if force }
+      run_operation('stop', args: args)
       sleep_whilst_running
       if force && running?
         kill_via_signal('TERM') || kill_via_signal('KILL')
